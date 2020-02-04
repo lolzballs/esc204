@@ -2,13 +2,11 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
-img_dir = 'img/'
-
 if __name__ == "__main__":
     print("Edge Detection")
 
-    im1 = cv.imread(img_dir + 'good_angle_right.jpg', cv.IMREAD_GRAYSCALE)    
-    im2 = cv.imread(img_dir + 'bad_angle_right.JPG', cv.IMREAD_GRAYSCALE)    
+    im1 = cv.imread('good_angle_right.jpg', cv.IMREAD_GRAYSCALE)    
+    im2 = cv.imread('bad_angle_right.JPG', cv.IMREAD_GRAYSCALE)    
 
 
     edges1 = cv.Canny(im1,100,200)
