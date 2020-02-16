@@ -1,10 +1,17 @@
 #include "event.h"
 #include "util.h"
+#include "stepperd/commands.h"
 
-#include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/timerfd.h>
 #include <time.h>
+#include <unistd.h>
+
+struct stepperd {
+    struct rio rio;
+    struct commands commands;
+};
 
 void setup_timer(int tfd, int usec) {
     struct itimerspec timerspec = {
@@ -24,7 +31,8 @@ void setup_timer(int tfd, int usec) {
 }
 
 void process_command(void *data, char *line) {
-    printf("processing: %s\n", line);
+    struct stepperd *stepperd = data;
+    command_exec(&stepperd->commands, line);
 }
 
 void process_timer(void *data, int tfd) {
@@ -37,15 +45,25 @@ void process_timer(void *data, int tfd) {
 
 int main(int argc, char *argv[]) {
     struct rio rio;
-    struct rio_cb rio_cb = {
-        .command_cb = process_command,
-        .timer_cb = process_timer,
-    };
-
     if (argc != 2) {
         fprintf(stderr, "usage: %s [time]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
+
+    struct commands commands;
+    commands.data = &rio;
+    stepperd_commands_init(&commands);
+
+
+    struct stepperd stepperd = {
+        .commands = commands,
+        .rio = rio
+    };
+
+    struct rio_cb rio_cb = {
+        .command_cb = process_command,
+        .timer_cb = process_timer,
+    };
 
     int usec = strtol(argv[1], NULL, 10);
 
@@ -53,7 +71,7 @@ int main(int argc, char *argv[]) {
 
     setup_timer(rio.tfd, usec);
 
-    rio_run(&rio, rio_cb, NULL);
+    rio_run(&rio, rio_cb, &stepperd);
     rio_finish(&rio);
 
     return 0;
