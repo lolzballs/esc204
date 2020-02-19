@@ -1,9 +1,12 @@
 import math
 import numpy as np
 import cv2 as cv
+import imutils
 from statistics import mean 
+from shapedetector import ShapeDetector
 
-image = cv.imread('l2.jpg')
+image = cv.imread('l3.jpg')
+ratio = 1
 
 blue = ([95,65,0], [165,180,40])
 
@@ -17,7 +20,42 @@ output = cv.bitwise_and(image, image, mask = mask)
 cv.imshow("Blue only", new)
 cv.waitKey(0)'''
 
-dst = cv.Canny(output, 100, 200)
+gray = cv.cvtColor(output, cv.COLOR_BGR2GRAY)
+blurred = cv.GaussianBlur(gray, (5, 5), 0)
+thresh = cv.threshold(gray, 60, 255, cv.THRESH_BINARY)[1]
+
+'''new = cv.resize(thresh, (int(2592/3),int(1944/3)))
+cv.imshow("Threshold", new)
+cv.waitKey(0)'''
+
+cnts = cv.findContours(thresh.copy(), cv.RETR_EXTERNAL,
+	cv.CHAIN_APPROX_SIMPLE)
+cnts = imutils.grab_contours(cnts)
+sd = ShapeDetector()
+
+# loop over the contours
+for c in cnts:
+    # compute the center of the contour, then detect the name of the
+    # shape using only the contour
+    M = cv.moments(c)
+    cX = int((M["m10"] / (M["m00"] + 1e-7)) * ratio)
+    cY = int((M["m01"] / (M["m00"] + 1e-7)) * ratio)
+    shape = sd.detect(c)
+    # multiply the contour (x, y)-coordinates by the resize ratio,
+    # then draw the contours and the name of the shape on the image
+    # c = c.astype("float")
+    c *= ratio
+    c = c.astype("int")
+    cv.drawContours(image, [c], -1, (0, 255, 0), 2)
+    cv.putText(image, shape, (cX, cY), cv.FONT_HERSHEY_SIMPLEX,
+        0.5, (255, 255, 255), 2)
+    # show the output image
+
+new = cv.resize(image, (int(2592/3),int(1944/3)))
+cv.imshow("Image", new)
+cv.waitKey(0)
+
+'''dst = cv.Canny(output, 100, 200)
     
 cdstP = cv.cvtColor(dst, cv.COLOR_GRAY2BGR)
 
@@ -98,9 +136,9 @@ print(move(positions[0],positions[1]))
 
 new = cv.resize(cdstP, (int(2592/3),int(1944/3)))
 cv.imshow("Detected Lines", new)
-cv.waitKey(0)
+cv.waitKey(0)'''
 
 #sm_image = cv.resize(image, (320,180))
 #sm_output = cv.resize(output, (320,180))
 #cv.imshow("images", np.hstack([sm_image, sm_output]))
-#cv.waitKey(0)'''
+#cv.waitKey(0)
