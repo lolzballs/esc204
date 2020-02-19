@@ -13,7 +13,7 @@ upper = np.array(upper, dtype = "uint8")
 mask = cv.inRange(image, lower, upper)
 output = cv.bitwise_and(image, image, mask = mask)
 
-'''new = cv.resize(crop, (int(2592/3),int(1944/3)))
+'''new = cv.resize(output, (int(2592/3),int(1944/3)))
 cv.imshow("Blue only", new)
 cv.waitKey(0)'''
 
