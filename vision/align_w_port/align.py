@@ -39,4 +39,4 @@ move(x1,x2)
 
 new = cv.resize(cdstP, (752,1464))
 cv.imshow("Detected Lines", new)
-cv.waitKey()
+cv.waitKey(0)
