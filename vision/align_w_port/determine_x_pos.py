@@ -2,8 +2,16 @@ import math
 import numpy as np
 import cv2 as cv
 from statistics import mean 
+from picamera import PiCamera
+from time import sleep
 
-image = cv.imread('l2.jpg')
+camera = PiCamera()
+camera.rotation = 180
+
+sleep(2)
+camera.capture('/home/jon_pi/praxis.jpg')
+
+image = cv.imread('praxis.jpg')
 
 blue = ([95,65,0], [165,180,40])
 
