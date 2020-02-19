@@ -8,9 +8,21 @@
 #include <time.h>
 #include <unistd.h>
 
+struct stepperd_motor {
+    bool in_progress;
+
+    double step_angle;
+    uint32_t steps;
+    uint32_t target_angle;
+    uint32_t target_duration;
+};
+
 struct stepperd {
     struct rio rio;
     struct commands commands;
+
+    uint32_t step_time; // T_high, T_low in ns
+    struct stepperd_motor motors[2];
 };
 
 void setup_timer(int tfd, int usec) {
