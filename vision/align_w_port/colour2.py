@@ -23,24 +23,28 @@ dst = cv.Canny(crop, 100, 200)
     
 cdstP = cv.cvtColor(dst, cv.COLOR_GRAY2BGR)
 
-linesP = cv.HoughLinesP(dst, 1, np.pi / 180, 5, None, 2, 2)
+lines = cv.HoughLines(dst, 1, np.pi / 180, 100, None, 0, 0)
 
-data = np.empty([0,4], int)
+data = []
 
-if linesP is not None:
-    for i in range(0, len(linesP)):
-        l = linesP[i][0]
-        angle = np.arctan2(l[2] - l[0], l[3] - l[1]) * 180. / np.pi
-        length = l[1] - l[3]
-        if ((angle > 150) and (angle < 210)) and (length < 300):
-            data = np.append(data,l)
-            cv.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 3, cv.LINE_AA)
+if lines is not None:
+    for i in range(0, len(lines)):
+        rho = lines[i][0][0]
+        theta = lines[i][0][1]
+        a = math.cos(theta)
+        b = math.sin(theta)
+        x0 = a * rho
+        y0 = b * rho
+        pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
+        pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+        angle = abs(np.arctan2(pt1[1] - pt2[1], pt1[0] - pt2[0]) * 180. / np.pi)
+        
+        if ((angle > 80) and (angle < 100)):
+            data.append(pt1)
+            data.append(pt2)
+            cv.line(cdstP, pt1, pt2, (0,0,255), 3, cv.LINE_AA)
 
-new = cv.resize(cdstP, (int(2592/3),int(1944/3)))
-cv.imshow("Detected Lines", new)
-cv.waitKey(0)
-
-x_pos = data.tolist()
+#Redo below...
 
 x_pos_final = []
 
