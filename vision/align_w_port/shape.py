@@ -2,19 +2,8 @@ import math
 import numpy as np
 import cv2 as cv
 from statistics import mean 
-'''from picamera import PiCamera
-from time import sleep
 
-camera = PiCamera()
-camera.rotation = 180
-
-sleep(2)
-camera.capture('/home/jon_pi/praxis.jpg')'''
-
-image = cv.imread('l3.jpg')
-
-#only checks right side of image
-#crop_img = image[400:1944-400, 0:2592]
+image = cv.imread('l2.jpg')
 
 blue = ([95,65,0], [165,180,40])
 
@@ -28,16 +17,13 @@ output = cv.bitwise_and(image, image, mask = mask)
 cv.imshow("Blue only", new)
 cv.waitKey(0)'''
 
-blur = cv.GaussianBlur(output,(5,5),10)
-
-dst = cv.Canny(blur, 100, 200)
+dst = cv.Canny(output, 100, 200)
     
 cdstP = cv.cvtColor(dst, cv.COLOR_GRAY2BGR)
 
-lines = cv.HoughLines(dst, 5, np.pi / 180, 50, None, 0, 0)
+lines = cv.HoughLines(dst, 1, np.pi / 180, 100, None, 0, 0)
 
 data = []
-angles = []
 
 if lines is not None:
     for i in range(0, len(lines)):
@@ -51,10 +37,9 @@ if lines is not None:
         pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
         angle = abs(np.arctan2(pt1[1] - pt2[1], pt1[0] - pt2[0]) * 180. / np.pi)
         
-        if ((angle > 87) and (angle < 93)):
+        if ((angle > 80) and (angle < 100)):
             data.append(pt1)
             data.append(pt2)
-            angles.append(angle)
             cv.line(cdstP, pt1, pt2, (0,0,255), 3, cv.LINE_AA)
 
 data_final = []
@@ -64,9 +49,8 @@ for i in range(0,len(data),2):
     data_final.append(temp)
 
 data_final.sort()
-angles.sort()
 
-def four_lines(sorted_list):
+def get_xvals(sorted_list):
     avg_vals = []
     acc = []
     for i in range (1,len(sorted_list)):
@@ -86,28 +70,33 @@ def four_lines(sorted_list):
             avg_vals.append(temp)
             acc = []
 
+    for i in avg_vals:
+        x1 = avg_vals[0]
+        x2 = avg_vals[3]
+
     if len(avg_vals) != 4:
-        return(False)
+        return(-1)
     
-    return(True)
+    return([x1, x2])
 
-test1 = four_lines(data_final)
+positions = get_xvals(data_final)
 
-def parallel(sorted_list):
-    for i in range(0,len(sorted_list)-1):
-        ratio = sorted_list[i]/sorted_list[i+1]
-        if (ratio < 0.9) or (ratio > 1.1):
-            return(False)
-    return(True)
+def move(a,b):
+    tolerance = 5
+    left = a
+    right = 2592 - b
+    test = left - right
+    if test > tolerance:
+        return('move left')
+    if test < -tolerance:
+        return('move right')
+    else:
+        return('ok!')
 
-test2 = parallel(angles)
+print(positions)
+print(move(positions[0],positions[1]))
 
-if (test1 == True) and (test2 == True):
-    print("Target in sight!")
-else:
-    print("Target not in sight...")
-
-new = cv.resize(blur, (int(2592/3),int(1144/3)))
+new = cv.resize(cdstP, (int(2592/3),int(1944/3)))
 cv.imshow("Detected Lines", new)
 cv.waitKey(0)
 

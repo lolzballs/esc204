@@ -3,7 +3,7 @@ import numpy as np
 import cv2 as cv
 from statistics import mean 
 
-image = cv.imread('l6.jpg')
+image = cv.imread('l3.jpg')
 
 blue = ([95,65,0], [165,180,40])
 
@@ -14,12 +14,14 @@ mask = cv.inRange(image, lower, upper)
 output = cv.bitwise_and(image, image, mask = mask)
 
 crop = output[500:1944-500,0:2592]
+blur = cv.GaussianBlur(crop,(5,5),10)
+
 
 '''new = cv.resize(crop, (int(2592/3),int(1944/3)))
 cv.imshow("Blue only", new)
 cv.waitKey(0)'''
 
-dst = cv.Canny(crop, 100, 200)
+dst = cv.Canny(blur, 100, 200)
     
 cdstP = cv.cvtColor(dst, cv.COLOR_GRAY2BGR)
 
@@ -36,7 +38,7 @@ if linesP is not None:
             data = np.append(data,l)
             cv.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 3, cv.LINE_AA)
 
-new = cv.resize(cdstP, (int(2592/3),int(1944/3)))
+new = cv.resize(blur, (int(2592/3),int(1944/3)))
 cv.imshow("Detected Lines", new)
 cv.waitKey(0)
 
