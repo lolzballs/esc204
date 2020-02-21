@@ -30,6 +30,8 @@ void rio_init(struct rio *rio);
 void rio_finish(struct rio *rio);
 
 void rio_run(struct rio *rio, struct rio_cb callback, void *data);
+int rio_write(struct rio *rio, uint8_t *buf, size_t len);
+int rio_write_string(struct rio *rio, char *str);
 
 #endif
 

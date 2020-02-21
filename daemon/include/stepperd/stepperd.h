@@ -9,10 +9,7 @@
 
 struct stepperd_target {
     bool is_valid;
-
     uint32_t target_steps;
-    struct timespec start;
-    struct timespec end;
 };
 
 struct stepperd_motor {

@@ -88,7 +88,11 @@ void rio_init(struct rio *rio) {
     ev.data.u32 = POLL_STDIN;
     epoll_ctl(rio->efd, EPOLL_CTL_ADD, STDIN_FILENO, &ev);
 
-    // TODO: Handle STDOUT
+    // Setup stdin events
+    fcntl(STDOUT_FILENO, F_SETFL, O_NONBLOCK);
+    ev.events = EPOLLOUT;
+    ev.data.u32 = POLL_STDOUT;
+    epoll_ctl(rio->efd, EPOLL_CTL_ADD, STDOUT_FILENO, &ev);
 }
 
 
@@ -98,7 +102,7 @@ void rio_finish(struct rio *rio) {
 
 void rio_run(struct rio *rio, struct rio_cb callback, void *data) {
     struct epoll_event events[3];
-    char command[BUFFER_MAX];
+    char tmp[BUFFER_MAX];
     int len;
 
     int ret = 0;
@@ -109,11 +113,21 @@ void rio_run(struct rio *rio, struct rio_cb callback, void *data) {
             struct epoll_event event = events[i];
             switch (event.data.u32) {
                 case POLL_STDIN:
-                    len = handle_input(&rio->input_buffer, command, BUFFER_MAX);
+                    len = handle_input(&rio->input_buffer, tmp, BUFFER_MAX);
                     if (len == 0)
                         continue;
 
-                    callback.command_cb(data, command);
+                    callback.command_cb(data, tmp);
+                    break;
+                case POLL_STDOUT:
+                    len = write(STDOUT_FILENO,
+                            rio->output_buffer.buf, rio->output_buffer.pos);
+                    if (len == -1)
+                        handle_error("write to stdout failed");
+
+                    rio->output_buffer.pos -= len;
+                    memcpy(tmp, rio->output_buffer.buf + len, rio->output_buffer.pos);
+                    memcpy(rio->output_buffer.buf, tmp, rio->output_buffer.pos);
                     break;
                 case POLL_TIMER:
                     callback.timer_cb(data, rio->tfd);
@@ -125,5 +139,20 @@ void rio_run(struct rio *rio, struct rio_cb callback, void *data) {
     }
 
     perror("epoll_wait");
+}
+
+int rio_write(struct rio *rio, uint8_t *buf, size_t len) {
+    if (len > BUFFER_MAX || rio->output_buffer.pos == BUFFER_MAX)
+        return 0;
+
+    size_t copy_len = MIN(BUFFER_MAX - rio->output_buffer.pos, len);
+    memcpy(rio->output_buffer.buf + rio->output_buffer.pos, buf, copy_len);
+    rio->output_buffer.pos += copy_len;
+
+    return copy_len;
+}
+
+int rio_write_string(struct rio *rio, char *str) {
+    return rio_write(rio, (uint8_t *) str, strlen(str) + 1);
 }
 

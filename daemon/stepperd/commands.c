@@ -4,14 +4,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#define COMPLETE
+
 // configure <step_time> <step_angle1> <step_angle2>
 int cmd_configure(void *data, char *arg_line) {
     struct stepperd *stepperd = data;
     char *error;
     char *tmp;
 
-    printf("configure: %s\n", arg_line);
-   
     tmp = strtok(arg_line, " ");
     if (tmp == NULL) {
         return -1;
@@ -39,6 +39,7 @@ int cmd_configure(void *data, char *arg_line) {
         return -1;
     }
 
+    rio_write_string(&stepperd->rio, "configure done\n");
     return 0;
 }
 
