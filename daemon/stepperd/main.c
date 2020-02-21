@@ -1,5 +1,5 @@
-#include "event.h"
 #include "util.h"
+#include "stepperd/stepperd.h"
 #include "stepperd/commands.h"
 
 #include <stdio.h>
@@ -7,23 +7,6 @@
 #include <sys/timerfd.h>
 #include <time.h>
 #include <unistd.h>
-
-struct stepperd_motor {
-    bool in_progress;
-
-    double step_angle;
-    uint32_t steps;
-    uint32_t target_angle;
-    uint32_t target_duration;
-};
-
-struct stepperd {
-    struct rio rio;
-    struct commands commands;
-
-    uint32_t step_time; // T_high, T_low in ns
-    struct stepperd_motor motors[2];
-};
 
 void setup_timer(int tfd, int usec) {
     struct itimerspec timerspec = {
@@ -44,7 +27,9 @@ void setup_timer(int tfd, int usec) {
 
 void process_command(void *data, char *line) {
     struct stepperd *stepperd = data;
-    command_exec(&stepperd->commands, line);
+    int ret = command_exec(&stepperd->commands, line);
+    if (ret != 0)
+        fprintf(stderr, "bad command\n");
 }
 
 void process_timer(void *data, int tfd) {
@@ -65,7 +50,6 @@ int main(int argc, char *argv[]) {
     struct commands commands;
     commands.data = &rio;
     stepperd_commands_init(&commands);
-
 
     struct stepperd stepperd = {
         .commands = commands,
@@ -88,3 +72,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
