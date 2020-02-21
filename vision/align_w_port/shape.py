@@ -5,7 +5,7 @@ import imutils
 from statistics import mean 
 from shapedetector import ShapeDetector
 
-image = cv.imread('l1.jpg')
+image = cv.imread('l3.jpg')
 
 blue = ([95,65,0], [165,180,10])
 
@@ -43,7 +43,7 @@ for c in cnts:
         data.append(c)
         c = c.astype("int")
         cv.drawContours(image, [c], -1, (0, 255, 0), 2)
-        cv.putText(image, shape, (cX, cY), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv.putText(image, shape, (cX, cY), cv.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2)
 
 '''new = cv.resize(image, (int(2592/3),int(1944/3)))
 cv.imshow("Image", new)
