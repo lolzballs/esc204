@@ -4,7 +4,33 @@
 #include <stdio.h>
 #include <string.h>
 
-#define COMPLETE
+static void normalize_steps(struct stepperd_motor *motor, int32_t target_steps) {
+    uint32_t full_rot = motor->steps_per_rot;
+    uint32_t cur_step = motor->cur_step;
+
+    while (target_steps < 0) {
+        target_steps = full_rot + target_steps; // make it a positive angle
+    }
+    target_steps = target_steps % full_rot; // normalize to [0, full_rot]
+
+    // determine direction
+    int32_t cw_steps = target_steps - cur_step;
+    int32_t ccw_steps = full_rot - cw_steps;
+    if (cw_steps < 0) {
+        ccw_steps = -cw_steps;
+        cw_steps = full_rot - ccw_steps;
+    }
+
+    motor->target.is_valid = true;
+    motor->target.step_count = 0;
+    if (cw_steps > ccw_steps) {
+        motor->target.clockwise = false;
+        motor->target.step_count = ccw_steps;
+    } else {
+        motor->target.clockwise = true;
+        motor->target.step_count = cw_steps;
+    }
+}
 
 // configure <step_time> <step_angle1> <step_angle2>
 int cmd_configure(void *data, char *arg_line) {
@@ -13,39 +39,60 @@ int cmd_configure(void *data, char *arg_line) {
     char *tmp;
 
     tmp = strtok(arg_line, " ");
-    if (tmp == NULL) {
+    if (tmp == NULL)
         return -1;
-    }
+
     stepperd->step_time = strtol(tmp, &error, 10);
-    if (*error != '\0') {
+    if (*error != '\0')
         return -1;
-    }
 
     tmp = strtok(NULL, " ");
-    if (tmp == NULL) {
+    if (tmp == NULL)
         return -1;
-    }
-    stepperd->motors[0].step_angle = strtod(tmp, &error);
-    if (*error != '\0') {
+
+    stepperd->motors[0].steps_per_rot = strtol(tmp, &error, 10);
+    if (*error != '\0')
         return -1;
-    }
 
     tmp = strtok(NULL, " ");
-    if (tmp == NULL) {
+    if (tmp == NULL)
         return -1;
-    }
-    stepperd->motors[1].step_angle = strtod(tmp, &error);
-    if (*error != '\0') {
+
+    stepperd->motors[1].steps_per_rot = strtol(tmp, &error, 10);
+    if (*error != '\0')
         return -1;
-    }
 
     rio_write_string(&stepperd->rio, "configure done\n");
     return 0;
 }
 
+// set <step_angle1> <step_angle2>
 int cmd_set(void *data, char *arg_line) {
     struct stepperd *stepperd = data;
-    printf("set: %s\n", arg_line);
+    char *error;
+    char *tmp;
+
+    stepperd->pending = true;
+    
+    tmp = strtok(arg_line, " ");
+    if (tmp == NULL)
+        return -1;
+
+    int32_t step_angle1 = strtol(tmp, &error, 10);
+    if (*error != '\0')
+        return -1;
+
+    tmp = strtok(arg_line, " ");
+    if (tmp == NULL)
+        return -1;
+
+    int32_t step_angle2 = strtol(tmp, &error, 10);
+    if (*error != '\0')
+        return -1;
+
+    normalize_steps(&stepperd->motors[0], step_angle1);
+    normalize_steps(&stepperd->motors[1], step_angle2);
+
     return 0;
 }
 
