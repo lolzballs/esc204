@@ -12,8 +12,8 @@ camera = PiCamera()
 camera.rotation = 180
 
 # Capture image with RBP camera
-sleep(10)
-camera.capture('/home/jon_pi/Desktop/esc204/vison/align_w_port/test.jpg')
+sleep(5)
+camera.capture('/home/jon_pi/Desktop/esc204/vision/align_w_port/test.jpg')
 
 # Read image with OpenCV
 image = cv.imread('test.jpg')
@@ -61,6 +61,7 @@ for c in cnts:
     shape = sd.detect(c)
     # Only add shape to list if it is a large rectangle
     if (shape == "rectangle") and (len(c) > 20):
+        print(c)
         data.append(c)
         c = c.astype("int")
         cv.drawContours(image, [c], -1, (0, 255, 0), 2)
@@ -102,15 +103,17 @@ def move(a,b):
     tolerance = 5
     left = a
     right = 2592 - b
+    print(left,right)
     test = left - right
     if test > tolerance:
-        return('move left')
-    if test < -tolerance:
         return('move right')
+    elif test < -tolerance:
+        return('move left')
     else:
         return('ok!')
 
 # Print movement for humans to see
+print(positions[0],positions[1])
 print(move(positions[0],positions[1]))
 
 # Display image of detected rectangles
