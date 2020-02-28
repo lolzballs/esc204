@@ -9,6 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#define PROCESS_NAME "stepperd"
 #define GPIOCHIP_NUM 0
 #define MOTOR1_STEP 27
 #define MOTOR1_DIR 22
@@ -74,15 +75,16 @@ static void process_timer(void *data, int tfd) {
         // update motor state
         if (motor.cur_step == 0 && !dir_state)
             motor.cur_step = motor.steps_per_rot - 1;
-        else if (motor.cur_step  == motor.steps_per_rot - 1 && dir_state)
+        else if (motor.cur_step == motor.steps_per_rot - 1 && dir_state)
             motor.cur_step = 0;
         else
             motor.cur_step += dir_state ? 1 : -1;
 
+        // increment target state
         motor.target.steps_elapsed++;
         motor.target.is_valid = motor.target.steps_elapsed != motor.target.step_count;
         if (!motor.target.is_valid)
-            done = false;
+            done = false; // mark not done
 
         // actually step
         assert(gpiod_line_set_value(motor.step_pin, !step_state) != -1);
@@ -98,11 +100,11 @@ static int init_motor(struct stepperd_motor *motor, struct gpiod_chip *chip,
     unsigned int step_pin, unsigned int dir_pin) {
     motor->step_pin = gpiod_chip_get_line(chip, step_pin);
     assert(motor->step_pin != NULL);
-    assert(gpiod_line_request_output(motor->step_pin, "stepperd", 0) == 0);
+    assert(gpiod_line_request_output(motor->step_pin, PROCESS_NAME, 0) == 0);
 
     motor->dir_pin = gpiod_chip_get_line(chip, dir_pin);
     assert(motor->dir_pin != NULL);
-    assert(gpiod_line_request_output(motor->dir_pin, "stepperd", 0) == 0);
+    assert(gpiod_line_request_output(motor->dir_pin, PROCESS_NAME, 0) == 0);
 
     motor->cur_step = 0;
     motor->target.is_valid = false;
