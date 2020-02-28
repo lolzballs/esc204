@@ -100,7 +100,7 @@ positions = outer_positions(data_in_list)
 
 # Determine what movement is required
 def move(a,b):
-    tolerance = 5
+    tolerance = 20
     left = a
     right = 2592 - b
     print(left,right)
