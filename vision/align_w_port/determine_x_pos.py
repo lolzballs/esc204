@@ -10,6 +10,7 @@ from time import sleep
 # Set up RBP camera
 camera = PiCamera()
 camera.rotation = 180
+camera.resolution = (2592, 1944)
 
 # Capture image with RBP camera
 sleep(5)
@@ -61,7 +62,6 @@ for c in cnts:
     shape = sd.detect(c)
     # Only add shape to list if it is a large rectangle
     if (shape == "rectangle") and (len(c) > 20):
-        print(c)
         data.append(c)
         c = c.astype("int")
         cv.drawContours(image, [c], -1, (0, 255, 0), 2)
@@ -113,7 +113,6 @@ def move(a,b):
         return('ok!')
 
 # Print movement for humans to see
-print(positions[0],positions[1])
 print(move(positions[0],positions[1]))
 
 # Display image of detected rectangles
