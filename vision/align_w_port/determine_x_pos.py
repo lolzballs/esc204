@@ -20,7 +20,7 @@ camera.capture('/home/jon_pi/Desktop/esc204/vision/align_w_port/test.jpg')
 image = cv.imread('test.jpg')
 
 # Define bounds on blue colour segmentation
-blue = ([95,65,0], [165,180,10])
+blue = ([40,20,80], [60,40,120])
 
 # Perform colour segmentation
 (lower, upper) = blue
@@ -61,7 +61,7 @@ for c in cnts:
     cY = int((M["m01"] / (M["m00"] + 1e-7)))
     shape = sd.detect(c)
     # Only add shape to list if it is a large rectangle
-    if (shape == "rectangle") and (len(c) > 20):
+    if (shape == "rectangle") and (len(c) > 40):
         data.append(c)
         c = c.astype("int")
         cv.drawContours(image, [c], -1, (0, 255, 0), 2)
