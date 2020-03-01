@@ -51,43 +51,44 @@ static void process_timer(void *data, int tfd) {
 
     size_t num_motors = sizeof(stepperd->motors) / sizeof(struct stepperd_motor);
     for (size_t i = 0; i < num_motors; i++) {
-        struct stepperd_motor motor = stepperd->motors[i];
+        struct stepperd_motor *motor = &stepperd->motors[i];
 
-        int step_state = gpiod_line_get_value(motor.step_pin);
+        int step_state = gpiod_line_get_value(motor->step_pin);
         assert(step_state != -1);
 
         // when the step pin is high, we are in the middle of a step 
         if (step_state) {
-            assert(gpiod_line_set_value(motor.step_pin, !step_state) != -1);
+            assert(gpiod_line_set_value(motor->step_pin, !step_state) != -1);
             continue;
         }
 
-        if (!motor.target.is_valid) {
+        if (!motor->target.is_valid) {
             continue;
         }
 
         // ensure we are going in the correct direction
-        int dir_state = gpiod_line_get_value(motor.dir_pin);
+        int dir_state = gpiod_line_get_value(motor->dir_pin);
         assert(dir_state != -1);
-        if (motor.target.clockwise != dir_state)
-            assert(gpiod_line_set_value(motor.dir_pin, !dir_state) != -1);
+        if (motor->target.clockwise != dir_state)
+            assert(gpiod_line_set_value(motor->dir_pin, !dir_state) != -1);
 
         // update motor state
-        if (motor.cur_step == 0 && !dir_state)
-            motor.cur_step = motor.steps_per_rot - 1;
-        else if (motor.cur_step == motor.steps_per_rot - 1 && dir_state)
-            motor.cur_step = 0;
+        if (motor->cur_step == 0 && !dir_state)
+            motor->cur_step = motor->steps_per_rot - 1;
+        else if (motor->cur_step == motor->steps_per_rot - 1 && dir_state)
+            motor->cur_step = 0;
         else
-            motor.cur_step += dir_state ? 1 : -1;
+            motor->cur_step += dir_state ? 1 : -1;
 
         // increment target state
-        motor.target.steps_elapsed++;
-        motor.target.is_valid = motor.target.steps_elapsed != motor.target.step_count;
-        if (!motor.target.is_valid)
-            done = false; // mark not done
-
+        motor->target.steps_elapsed += 1;
         // actually step
-        assert(gpiod_line_set_value(motor.step_pin, !step_state) != -1);
+        assert(gpiod_line_set_value(motor->step_pin, 1) != -1);
+
+        if (motor->target.steps_elapsed == motor->target.step_count)
+            motor->target.is_valid = false;
+	else
+            done = false; // mark not done
     }
 
     if (done && stepperd->pending) {
@@ -112,7 +113,6 @@ static int init_motor(struct stepperd_motor *motor, struct gpiod_chip *chip,
 }
 
 int main(int argc, char *argv[]) {
-    struct rio rio;
     if (argc != 2) {
         fprintf(stderr, "usage: %s [time]\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -124,20 +124,16 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    struct commands commands;
-    commands.data = &rio;
-    stepperd_commands_init(&commands);
-
     struct stepperd stepperd = {
-        .rio = rio,
-        .commands = commands,
         .pending = false,
         .chip = chip,
     };
+    stepperd_commands_init(&stepperd.commands, &stepperd);
 
     assert(init_motor(&stepperd.motors[0], chip, MOTOR1_STEP, MOTOR1_DIR) == 0);
     assert(init_motor(&stepperd.motors[1], chip, MOTOR2_STEP, MOTOR2_DIR) == 0);
 
+    struct rio *rio = &stepperd.rio;
     struct rio_cb rio_cb = {
         .command_cb = process_command,
         .timer_cb = process_timer,
@@ -145,12 +141,12 @@ int main(int argc, char *argv[]) {
 
     int usec = strtol(argv[1], NULL, 10);
 
-    rio_init(&rio);
+    rio_init(rio);
 
-    setup_timer(rio.tfd, usec);
+    setup_timer(rio->tfd, usec);
 
-    rio_run(&rio, rio_cb, &stepperd);
-    rio_finish(&rio);
+    rio_run(rio, rio_cb, &stepperd);
+    rio_finish(rio);
 
     return 0;
 }

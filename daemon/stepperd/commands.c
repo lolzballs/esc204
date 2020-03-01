@@ -23,6 +23,7 @@ static void normalize_steps(struct stepperd_motor *motor, int32_t target_steps) 
 
     motor->target.is_valid = true;
     motor->target.step_count = 0;
+    motor->target.steps_elapsed = 0;
     if (cw_steps > ccw_steps) {
         motor->target.clockwise = false;
         motor->target.step_count = ccw_steps;
@@ -82,7 +83,7 @@ int cmd_set(void *data, char *arg_line) {
     if (*error != '\0')
         return -1;
 
-    tmp = strtok(arg_line, " ");
+    tmp = strtok(NULL, " ");
     if (tmp == NULL)
         return -1;
 
@@ -101,7 +102,8 @@ static struct cmd_handler handlers[] = {
     { "set", cmd_set },
 };
 
-void stepperd_commands_init(struct commands *commands) {
+void stepperd_commands_init(struct commands *commands, void *data) {
+    commands->data = data;
     commands->commands = handlers;
     commands->len = sizeof(handlers) / sizeof(struct cmd_handler);
 }
