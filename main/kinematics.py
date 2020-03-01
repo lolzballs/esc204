@@ -1,4 +1,42 @@
+import math
 import subprocess
+
+LINK1_LEN = 0.5
+LINK2_LEN = 0.5
+LINK3_LEN = 0.1
+
+# solves forward kinematics system to return:
+# (x, y, yaw)
+def _forward(a1, a2, a3):
+    x = LINK1_LEN * math.cos(a1) + LINK2_LEN * math.cos(a1 + a2) + \
+            LINK3_LEN * math.cos(a1 + a2 + a3)
+    y = LINK1_LEN * math.sin(a1) + LINK2_LEN * math.sin(a1 + a2) + \
+            LINK3_LEN * math.sin(a1 + a2 + a3)
+
+    return (x, y, a1 + a2 + a3)
+
+# solves inverse kinematics system to return
+# (stepper 1 angle, stepper 2 angle, stepper 3 angle)
+def _inverse(x, y, phi, right_hand=False):
+    xb = x - LINK3_LEN * math.cos(phi)
+    yb = y - LINK3_LEN * math.sin(phi)
+    gamma2 = xb ** 2 + yb ** 2
+    gamma = math.sqrt(gamma2)
+
+    alpha = math.atan2(yb, xb)
+    beta = math.acos((LINK1_LEN ** 2 + LINK2_LEN ** 2 - gamma2) / (2 * LINK1_LEN * LINK2_LEN))
+    c = math.acos((gamma2 + LINK1_LEN ** 2  - LINK2_LEN ** 2) / (2 * gamma * LINK1_LEN))
+
+    a1 = alpha - c
+    a2 = math.pi - beta
+    a3 = phi - a1 - a2
+
+    if right_hand:
+        a1 = a1 + 2 * c
+        a2 = -a2
+        a3 = phi - a1 - a2
+
+    return (a1, a2, a3)
 
 class Motion:
     def __init__(self):
@@ -6,15 +44,8 @@ class Motion:
         self.servo = _servo([12, 0.025, 0.125], [13, 0, 1])
         #self.stepper = _stepperd(1000, 5370, 5370)
 
-    # solves forward kinematics system to return:
-    # (x, y, yaw)
-    def __forward(self):
-        return (0, 0, 0)
-
-    # solves inverse kinematics system to return
-    # (stepper 1 angle, stepper 2 angle, stepper 3 angle)
-    def __inverse(self, x, y, yaw, left_hand=False):
-        return (0, 0, 0)
+        # set to initial state
+        self.a1, self.a2, self.a3 = _inverse(-0.5, -0.1, 0)
 
     # linear step right
     # relative to the end effector frame
@@ -45,7 +76,7 @@ class Motion:
         pass
 
     def get_pos(self):
-        return self.__forward()
+        return _forward(self.a1, self.a2, self.a3)
 
 class _stepperd:
     def __init__(self, step_time, rot1, rot2):
