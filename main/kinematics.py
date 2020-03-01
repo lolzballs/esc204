@@ -3,8 +3,8 @@ import subprocess
 class Motion:
     def __init__(self):
         # initialize daemons
-        self.servo = _servo([12, 0, 1], [13, 0, 1])
-        self.stepper = _stepperd(1000, 5370, 5370)
+        self.servo = _servo([12, 0.03, 0.13], [13, 0, 1])
+        #self.stepper = _stepperd(1000, 5370, 5370)
 
     # solves forward kinematics system to return:
     # (x, y, yaw)
@@ -66,12 +66,14 @@ class _stepperd:
 
         self.pending = "configure"
         self.process.stdin.write("configure {} {} {}".format(step_time, rot1, rot2))
+        self.process.stdin.flush()
 
     def set(self, step1, step2):
         self.__block_pending()
 
         self.pending = "set"
         self.process.stdin.write("set {} {}\n".format(step1, step2))
+        self.process.stdin.flush()
 
 class _servo:
     def __init__(self, joint, end):
@@ -80,6 +82,7 @@ class _servo:
         self.end = end
 
     def set_joint(self, angle):
-        duty = (self.joint[2] - self.joint[1]) * (angle / 180)
-        self.blaster.write("{}={}", self.joint[0], duty)
+        duty = (self.joint[2] - self.joint[1]) * (angle / 180.0) + self.joint[1]
+        self.blaster.write("{}={}\n".format(self.joint[0], duty))
+        self.blaster.flush()
 
