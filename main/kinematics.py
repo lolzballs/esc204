@@ -3,7 +3,7 @@ import subprocess
 class Motion:
     def __init__(self):
         # initialize daemons
-        self.servo = _servo([12, 0.03, 0.13], [13, 0, 1])
+        self.servo = _servo([12, 0.025, 0.125], [13, 0, 1])
         #self.stepper = _stepperd(1000, 5370, 5370)
 
     # solves forward kinematics system to return:
