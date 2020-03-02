@@ -75,6 +75,7 @@ class SetCam:
         # Capture image with RBP camera
         sleep(5)
         self.camera.capture('/home/jon_pi/Desktop/esc204/vision/align_w_port/test.jpg')
+        self.camera.close()
 
         # Read image with OpenCV
         image = cv.imread('test.jpg')
