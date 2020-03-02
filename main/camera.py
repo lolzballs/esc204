@@ -154,7 +154,7 @@ class SetCam:
         return(move[0], xDist)
 
         # Print movement for humans to see
-        # print(move(positions[0],positions[1]))
+        print(move(positions[0],positions[1]))
 
         # Display image of detected rectangles
         '''new = cv.resize(image, (int(2592/3),int(1944/3)))
