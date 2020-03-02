@@ -1,3 +1,7 @@
+# THIS FILE IS DEPRECATED
+
+# See /main/camera.py for working version
+
 import math
 import numpy as np
 import cv2 as cv
