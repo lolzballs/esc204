@@ -3,6 +3,7 @@ import numpy as np
 import cv2 as cv
 import imutils
 from statistics import mean 
+from picamera.array import CamArray
 from picamera import PiCamera
 from time import sleep
 
@@ -43,6 +44,7 @@ class SetCam:
         self.camera = PiCamera()
         self.camera.rotation = 180
         self.camera.resolution = (2592, 1944)
+        self.rawCapture = CamArray(self.camera)
 
     # Determine what direction to move in
     def x_pos(self, outPos):
@@ -74,14 +76,13 @@ class SetCam:
     def determine_move(self, tof):
         # Capture image with RBP camera
         sleep(5)
-        self.camera.capture('/home/jon_pi/Desktop/esc204/main/test.jpg')
+        self.camera.capture(self.rawCapture, format="bgr")
+        image = self.rawCapture.array
+        cv.imwrite('/home/jon_pi/Desktop/bruh.jpg')
         self.camera.close()
 
-        # Read image with OpenCV
-        image = cv.imread('/home/jon_pi/Desktop/esc204/main/test.jpg')
-
         # Define bounds on red colour segmentation
-        red = ([0,0,80], [70,70,255])
+        red = ([0,0,80], [75,75,255])
 
         # Perform colour segmentation
         (lower, upper) = red
@@ -90,7 +91,7 @@ class SetCam:
         mask = cv.inRange(image, lower, upper)
         output = cv.bitwise_and(image, image, mask = mask)
 
-        cv.imwrite("/home/jon_pi/Desktop/hello.jpg", output)
+        # cv.imwrite("/home/jon_pi/Desktop/hello.jpg", output)
 
         # Convert colour segmented image to grayscale
         gray = cv.cvtColor(output, cv.COLOR_BGR2GRAY)
@@ -148,19 +149,9 @@ class SetCam:
 
         xDist = self.convert_dist(move[1],tof)
 
-        # -1 -> move
-        xDist = self.convert_dist(move[1],tof)
-
         # -1 -> move left, 1 -> move right, 0 -> don't move; magnitude of move in mm
         return(move[0], xDist)
 
-        # Print m left, 1 -> move right, 0 -> don't move; magnitude of move in mm
-        return(move[0], xDist)
-
-        # Print movement for humans to see
-        print(self.x_pos(positions[0],positions[1]))
-
-        # Display image of detected rectangles
         '''new = cv.resize(image, (int(2592/3),int(1944/3)))
         cv.imshow("Let's find some rectangles", new)
         cv.waitKey()'''
