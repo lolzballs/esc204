@@ -74,14 +74,14 @@ class SetCam:
     def determine_move(self, tof):
         # Capture image with RBP camera
         sleep(5)
-        self.camera.capture('/home/jon_pi/Desktop/esc204/vision/align_w_port/test.jpg')
+        self.camera.capture('/home/jon_pi/Desktop/esc204/main/test.jpg')
         self.camera.close()
 
         # Read image with OpenCV
-        image = cv.imread('test.jpg')
+        image = cv.imread('/home/jon_pi/Desktop/esc204/main/test.jpg')
 
-        # Define bounds on blue colour segmentation
-        red = ([40,20,80], [60,40,120])
+        # Define bounds on red colour segmentation
+        red = ([0,0,80], [70,70,255])
 
         # Perform colour segmentation
         (lower, upper) = red
@@ -90,9 +90,7 @@ class SetCam:
         mask = cv.inRange(image, lower, upper)
         output = cv.bitwise_and(image, image, mask = mask)
 
-        '''new = cv.resize(output, (int(2592/3),int(1944/3)))
-        cv.imshow("Blue only", new)
-        cv.waitKey(0)'''
+        cv.imwrite("/home/jon_pi/Desktop/hello.jpg", output)
 
         # Convert colour segmented image to grayscale
         gray = cv.cvtColor(output, cv.COLOR_BGR2GRAY)
@@ -122,7 +120,7 @@ class SetCam:
             cY = int((M["m01"] / (M["m00"] + 1e-7)))
             shape = sd.detect(c)
             # Only add shape to list if it is a large rectangle
-            if (shape == "rectangle") and (len(c) > 40):
+            if (shape == "rectangle") and (len(c) > 20):
                 array.append(c)
                 c = c.astype("int")
                 cv.drawContours(image, [c], -1, (0, 255, 0), 2)
@@ -150,13 +148,19 @@ class SetCam:
 
         xDist = self.convert_dist(move[1],tof)
 
+        # -1 -> move
+        xDist = self.convert_dist(move[1],tof)
+
         # -1 -> move left, 1 -> move right, 0 -> don't move; magnitude of move in mm
         return(move[0], xDist)
 
+        # Print m left, 1 -> move right, 0 -> don't move; magnitude of move in mm
+        return(move[0], xDist)
+
         # Print movement for humans to see
-        print(move(positions[0],positions[1]))
+        print(self.x_pos(positions[0],positions[1]))
 
         # Display image of detected rectangles
         '''new = cv.resize(image, (int(2592/3),int(1944/3)))
         cv.imshow("Let's find some rectangles", new)
-        cv.waitKey(0)'''
+        cv.waitKey()'''
