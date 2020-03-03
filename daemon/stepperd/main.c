@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/timerfd.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -15,23 +14,6 @@
 #define MOTOR1_DIR 22
 #define MOTOR2_STEP 23
 #define MOTOR2_DIR 24
-
-static void setup_timer(int tfd, int usec) {
-    struct itimerspec timerspec = {
-        .it_interval = {
-            .tv_sec = usec / 1000000,
-            .tv_nsec = (usec % 1000000) * 1000
-        },
-        .it_value = {
-            .tv_sec = usec / 1000000,
-            .tv_nsec = (usec % 1000000) * 1000
-        }
-    };
-
-    if (timerfd_settime(tfd, 0, &timerspec, NULL) < 0) {
-        handle_error("timerfd_settime");
-    }
-}
 
 static void process_command(void *data, char *line) {
     struct stepperd *stepperd = data;
@@ -113,11 +95,6 @@ static int init_motor(struct stepperd_motor *motor, struct gpiod_chip *chip,
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "usage: %s [time]\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-
     struct gpiod_chip *chip = gpiod_chip_open_by_number(0);
     if (chip == NULL) {
         fprintf(stderr, "failed to open gpio chip\n");
@@ -139,12 +116,7 @@ int main(int argc, char *argv[]) {
         .timer_cb = process_timer,
     };
 
-    int usec = strtol(argv[1], NULL, 10);
-
     rio_init(rio);
-
-    setup_timer(rio->tfd, usec);
-
     rio_run(rio, rio_cb, &stepperd);
     rio_finish(rio);
 

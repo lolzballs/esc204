@@ -42,7 +42,7 @@ class Motion:
     def __init__(self):
         # initialize daemons
         self.servo = _servo([12, 0.025, 0.125], [13, 0, 1])
-        #self.stepper = _stepperd(1000, 5370, 5370)
+        self.stepper = _stepperd(1000, 5370, 5370)
 
         # set to initial state
         self.a1, self.a2, self.a3 = _inverse(-0.5, -0.1, 0)
@@ -88,15 +88,15 @@ class _stepperd:
 
     def __block_pending(self):
         while self.pending != None:
-            output = self.process.stdout.readline()
-            if output == "done " + self.pending:
+            output = self.process.stdout.readline().strip().strip('\0')
+            if output == self.pending + " done":
                 self.pending = None
 
     def configure(self, step_time, rot1, rot2):
         self.__block_pending()
 
         self.pending = "configure"
-        self.process.stdin.write("configure {} {} {}".format(step_time, rot1, rot2))
+        self.process.stdin.write("configure {} {} {}\n".format(step_time, rot1, rot2))
         self.process.stdin.flush()
 
     def set(self, step1, step2):
@@ -116,4 +116,3 @@ class _servo:
         duty = (self.joint[2] - self.joint[1]) * (angle / 180.0) + self.joint[1]
         self.blaster.write("{}={}\n".format(self.joint[0], duty))
         self.blaster.flush()
-
