@@ -1,9 +1,9 @@
 import math
 import subprocess
 
-LINK1_LEN = 0.5
-LINK2_LEN = 0.5
-LINK3_LEN = 0.1
+LINK1_LEN = 500
+LINK2_LEN = 500
+LINK3_LEN = 100
 
 # solves forward kinematics system to return:
 # (x, y, yaw)
@@ -46,37 +46,55 @@ class Motion:
 
         # set to initial state
         self.a1, self.a2, self.a3 = _inverse(-0.5, -0.1, 0)
+        self.x, self.y, self.phi = (-0.5, -0.1, 0)
 
     # linear step right
     # relative to the end effector frame
     def step_right(self, steps=1):
-        pass
+        # TODO: relativity and limiting
+        self.x += steps
+        self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        self.update_system()
 
     # linear step left 
     # relative to the end effector frame
     def step_left(self, steps=1):
-        pass
+        # TODO: relativity and limiting
+        self.x -= steps
+        self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        self.update_system()
 
     # linear step forward 
     # relative to the end effector frame
     def step_forward(self, steps=1):
-        pass
+        # TODO: relativity and limiting
+        self.y += steps
+        self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        self.update_system()
 
     # linear step back 
     # relative to the end effector frame
     def step_back(self, steps=1):
+        # TODO: relativity and limiting
+        self.y -= steps
+        self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
         pass
 
     # rotate end effector cw
     def rotate_cw(self, angle=1):
-        pass
+        # TODO: Modular arithmetic, update phi
+        self.a3 += angle
+        self.update_system()
 
     # rotate end effector ccw
     def rotate_ccw(self, angle=1):
-        pass
+        # TODO: Modular arithmetic, update phi
+        self.a3 -= angle
+        self.update_system()
 
-    def get_pos(self):
-        return _forward(self.a1, self.a2, self.a3)
+    def update_system(self):
+        self.stepper.set(self.a1 * 5370 / (2 * math.pi), self.a2 * 5370 / (2 * math.pi))
+        self.servo.set_joint(self.a3)
 
 class _stepperd:
     def __init__(self, step_time, rot1, rot2):
