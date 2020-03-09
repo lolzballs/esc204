@@ -104,14 +104,26 @@ class Motion:
 
     # rotate end effector cw
     def rotate_cw(self, angle=1):
-        # TODO: Modular arithmetic, update phi
-        self.a3 += angle
+        # TODO: Modular arithmetic
+        self.phi += angle * math.pi / 180
+        try:
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        except:
+            print("out of range")
+            self.phi -= angle * math.pi / 180
+            return
         self.update_system()
 
     # rotate end effector ccw
     def rotate_ccw(self, angle=1):
-        # TODO: Modular arithmetic, update phi
-        self.a3 -= angle
+        # TODO: Modular arithmetic
+        self.phi -= angle * math.pi / 180
+        try:
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        except:
+            print("out of range")
+            self.phi += angle * math.pi / 180
+            return
         self.update_system()
 
     def update_system(self):
