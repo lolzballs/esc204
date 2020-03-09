@@ -25,7 +25,8 @@ static int setup_timer(int tfd, int usec) {
     return 0;
 }
 
-static void normalize_steps(struct stepperd_motor *motor, int32_t target_steps) {
+// returns true it is already there
+static bool normalize_steps(struct stepperd_motor *motor, int32_t target_steps) {
     uint32_t full_rot = motor->steps_per_rot;
     uint32_t cur_step = motor->cur_step;
 
@@ -42,6 +43,9 @@ static void normalize_steps(struct stepperd_motor *motor, int32_t target_steps) 
         cw_steps = full_rot - ccw_steps;
     }
 
+    if (cw_steps == 0)
+        return true;
+
     motor->target.is_valid = true;
     motor->target.step_count = 0;
     motor->target.steps_elapsed = 0;
@@ -52,6 +56,8 @@ static void normalize_steps(struct stepperd_motor *motor, int32_t target_steps) 
         motor->target.clockwise = true;
         motor->target.step_count = cw_steps;
     }
+
+    return false;
 }
 
 // configure <step_time> <step_angle1> <step_angle2>
@@ -115,8 +121,13 @@ int cmd_set(void *data, char *arg_line) {
     if (*error != '\0')
         return -1;
 
-    normalize_steps(&stepperd->motors[0], step_angle1);
-    normalize_steps(&stepperd->motors[1], step_angle2);
+    bool ret1 = normalize_steps(&stepperd->motors[0], step_angle1);
+    bool ret2 = normalize_steps(&stepperd->motors[1], step_angle2);
+
+    if (ret1 && ret2) { // both motors are at its target
+        stepperd->pending = false;
+        rio_write_string(&stepperd->rio, "set done\n");
+    }
 
     return 0;
 }

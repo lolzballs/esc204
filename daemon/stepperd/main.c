@@ -69,7 +69,7 @@ static void process_timer(void *data, int tfd) {
 
         if (motor->target.steps_elapsed == motor->target.step_count)
             motor->target.is_valid = false;
-	else
+        else
             done = false; // mark not done
     }
 
@@ -80,7 +80,7 @@ static void process_timer(void *data, int tfd) {
 }
 
 static int init_motor(struct stepperd_motor *motor, struct gpiod_chip *chip,
-    unsigned int step_pin, unsigned int dir_pin) {
+        unsigned int step_pin, unsigned int dir_pin) {
     motor->step_pin = gpiod_chip_get_line(chip, step_pin);
     assert(motor->step_pin != NULL);
     assert(gpiod_line_request_output(motor->step_pin, PROCESS_NAME, 0) == 0);
