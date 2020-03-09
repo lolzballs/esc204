@@ -45,40 +45,62 @@ class Motion:
         self.stepper = _stepperd(1000, 5370, 5370)
 
         # set to initial state
-        self.a1, self.a2, self.a3 = _inverse(-0.5, -0.1, 0)
-        self.x, self.y, self.phi = (-0.5, -0.1, 0)
+        self.a1, self.a2, self.a3 = _inverse(1100, 0, 0)
+        self.x, self.y, self.phi = _forward(self.a1, self.a2, self.a3)
+
+        assert(self.x == 1100 and self.y == 0 and self.phi == 0) # sanity check
 
     # linear step right
     # relative to the end effector frame
     def step_right(self, steps=1):
-        # TODO: relativity and limiting
+        # TODO: relativity
         self.x += steps
-        self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        try:
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        except:
+            print("out of range")
+            self.x -= steps
+            return
         self.update_system()
 
     # linear step left 
     # relative to the end effector frame
     def step_left(self, steps=1):
-        # TODO: relativity and limiting
+        # TODO: relativity
         self.x -= steps
-        self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        try:
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        except:
+            print("out of range")
+            self.x += steps
+            return
         self.update_system()
 
     # linear step forward 
     # relative to the end effector frame
     def step_forward(self, steps=1):
-        # TODO: relativity and limiting
+        # TODO: relativity
         self.y += steps
-        self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        try:
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        except:
+            print("out of range")
+            self.y -= steps
+            return
         self.update_system()
 
     # linear step back 
     # relative to the end effector frame
     def step_back(self, steps=1):
-        # TODO: relativity and limiting
+        # TODO: relativity
         self.y -= steps
-        self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
-        pass
+        try:
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+        except:
+            print("out of range")
+            self.y += steps
+            return
+        self.update_system()
 
     # rotate end effector cw
     def rotate_cw(self, angle=1):
