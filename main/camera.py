@@ -150,7 +150,7 @@ class SetCam:
         xDist = self.convert_dist(move[1],tof)
 
         # -1 -> move left, 1 -> move right, 0 -> don't move; magnitude of move in mm
-        return(move[0], xDist)
+        return((move[0], xDist))
 
         '''new = cv.resize(image, (int(2592/3),int(1944/3)))
         cv.imshow("Let's find some rectangles", new)
