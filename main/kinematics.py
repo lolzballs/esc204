@@ -168,3 +168,7 @@ class _servo:
         duty = (self.joint[2] - self.joint[1]) * (angle / 180.0) + self.joint[1]
         self.blaster.write("{}={}\n".format(self.joint[0], duty))
         self.blaster.flush()
+
+    def kill_joint(self):
+        self.blaster.write("{}=0\n".format(self.joint[0]))
+        self.blaster.flush()
