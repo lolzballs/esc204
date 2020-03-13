@@ -150,6 +150,6 @@ class SetCam:
 
         xDist = self.convert_dist(move[1],tof)
 
-        cv.imwrite("/home/pi/test.jpg",image)
+        cv.imwrite("/home/pi/esc204/test.jpg",image)
         # -1 -> move left, 1 -> move right, 0 -> don't move; magnitude of move in mm
         return((move[0], xDist))
