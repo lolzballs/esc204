@@ -102,10 +102,6 @@ class SetCam:
         # Convert image again to black and white only 
         thresh = cv.threshold(gray, 60, 255, cv.THRESH_BINARY)[1]
 
-        '''new = cv.resize(thresh, (int(2592/3),int(1944/3)))
-        cv.imshow("Threshold", new)
-        cv.waitKey(0)'''
-
         # Detect shapes in image
         cnts = cv.findContours(thresh.copy(), cv.RETR_EXTERNAL,
             cv.CHAIN_APPROX_SIMPLE)
@@ -127,12 +123,6 @@ class SetCam:
                 c = c.astype("int")
                 cv.drawContours(image, [c], -1, (0, 255, 0), 2)
                 cv.putText(image, shape, (cX, cY), cv.FONT_HERSHEY_SIMPLEX, 50, (255, 255, 255), 2)
-
-        cv.imwrite('/home/pi/esc204/jon.jpg',image)
-
-        '''new = cv.resize(image, (int(2592/3),int(1944/3)))
-        cv.imshow("Image", new)
-        cv.waitKey(0)'''
 
         # Empty list to collect post-processed data
         data = []
