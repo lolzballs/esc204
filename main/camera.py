@@ -95,7 +95,7 @@ class SetCam:
         # cv.imwrite("/home/jon_pi/Desktop/hello.jpg", output)
 
         # Convert colour segmented image to grayscale
-        gray = cv.cvtColor(output, cv.COLOR_BGR2GRAY)
+        gray = cv.cvtColor(output, cv.COLOR_RGB2GRAY)
 
         # blurred = cv.GaussianBlur(gray, (5, 5), 0)
 
