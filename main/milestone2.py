@@ -10,6 +10,9 @@ class milestone2:
     
     def main(self):
 
+        for _i in range(0,100):
+            self.mot.step_left(1)
+
         move = self.cam.determine_move(self.dist)
 
         if move[0] == -1:
