@@ -102,6 +102,7 @@ class SetCam:
         # Convert image again to black and white only 
         thresh = cv.threshold(gray, 60, 255, cv.THRESH_BINARY)[1]
 
+        cv.imwrite("/home/pi/esc204/test2.jpg",thresh)
         '''new = cv.resize(thresh, (int(2592/3),int(1944/3)))
         cv.imshow("Threshold", new)
         cv.waitKey(0)'''
