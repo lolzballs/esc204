@@ -76,9 +76,9 @@ class SetCam:
     def determine_move(self, tof):
         # Capture image with RBP camera
         sleep(5)
-        self.camera.capture(self.rawCapture)
+        self.camera.capture(self.rawCapture, format='rgb')
         image = self.rawCapture.array
-        cv.imwrite('/home/pi/Desktop/bruh.jpg')
+        cv.imwrite('/home/pi/esc204/bruh.jpg',image)
         self.camera.close()
 
         # Define bounds on red colour segmentation
