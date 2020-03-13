@@ -41,7 +41,7 @@ def _inverse(x, y, phi, right_hand=False):
 class Motion:
     def __init__(self):
         # initialize daemons
-        self.servo = _servo([12, 0.025, 0.125], [13, 0, 1])
+        self.servo = _servo([13, 0.025, 0.125], [6, 0, 1])
         self.stepper = _stepperd(1000, 5370, 5370)
 
         # set to initial state
@@ -58,7 +58,6 @@ class Motion:
         try:
             self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
         except:
-            print("out of range")
             self.x -= steps
             return
         self.update_system()
@@ -137,7 +136,6 @@ class _stepperd:
         self.pending = None
         self.configure(step_time, rot1, rot2)
 
-
     def __block_pending(self):
         while self.pending != None:
             output = self.process.stdout.readline().strip().strip('\0')
@@ -155,7 +153,7 @@ class _stepperd:
         self.__block_pending()
 
         self.pending = "set"
-        self.process.stdin.write("set {} {}\n".format(step1, step2))
+        self.process.stdin.write("set {} {}\n".format(int(round(step1)), int(round(step2))))
         self.process.stdin.flush()
 
 class _servo:
@@ -165,7 +163,9 @@ class _servo:
         self.end = end
 
     def set_joint(self, angle):
-        duty = (self.joint[2] - self.joint[1]) * (angle / 180.0) + self.joint[1]
+        angle = angle * 180 / math.pi
+        angle = -angle
+        duty = (self.joint[2] - self.joint[1]) * ((angle + 90) / 180.0) + self.joint[1]
         self.blaster.write("{}={}\n".format(self.joint[0], duty))
         self.blaster.flush()
 

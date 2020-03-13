@@ -3,7 +3,7 @@ import numpy as np
 import cv2 as cv
 import imutils
 from statistics import mean 
-from picamera.array import CamArray
+from picamera.array import CamArray 
 from picamera import PiCamera
 from time import sleep
 
@@ -78,7 +78,7 @@ class SetCam:
         sleep(5)
         self.camera.capture(self.rawCapture, format="bgr")
         image = self.rawCapture.array
-        cv.imwrite('/home/jon_pi/Desktop/bruh.jpg')
+        cv.imwrite('/home/pi/Desktop/bruh.jpg')
         self.camera.close()
 
         # Define bounds on red colour segmentation
