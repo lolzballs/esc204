@@ -3,7 +3,6 @@ import numpy as np
 import cv2 as cv
 import imutils
 from statistics import mean 
-from picamera.array import PiRGBArray 
 from picamera import PiCamera
 from time import sleep
 
@@ -44,7 +43,6 @@ class SetCam:
         self.camera = PiCamera()
         self.camera.rotation = 180
         self.camera.resolution = (2592, 1944)
-        self.rawCapture = PiRGBArray(self.camera)
 
     # Determine what direction to move in
     def x_pos(self, outPos):
@@ -76,14 +74,13 @@ class SetCam:
     def determine_move(self, tof):
         # Capture image with RBP camera
         sleep(5)
-        self.camera.capture(self.rawCapture, format='bgr')
-        image = self.rawCapture.array
-        image = image[:, :, ::-1]
-        jpg = cv.imwrite('/home/pi/esc204/input.jpg', image)
-        self.camera.close()
+        self.camera.capture('/home/jon_pi/Desktop/esc204/vision/align_w_port/test.jpg')
 
-        # Define bounds on red colour segmentation
-        red = ([0,0,80], [75,75,255])
+        # Read image with OpenCV
+        image = cv.imread('test.jpg')
+
+        # Define bounds on blue colour segmentation
+        red = ([40,20,80], [60,40,120])
 
         # Perform colour segmentation
         (lower, upper) = red
@@ -92,17 +89,21 @@ class SetCam:
         mask = cv.inRange(image, lower, upper)
         output = cv.bitwise_and(image, image, mask = mask)
 
-        cv.imwrite("/home/pi/esc204/output.jpg", output)
+        '''new = cv.resize(output, (int(2592/3),int(1944/3)))
+        cv.imshow("Blue only", new)
+        cv.waitKey(0)'''
 
         # Convert colour segmented image to grayscale
-        gray = cv.cvtColor(output, cv.COLOR_RGB2GRAY)
+        gray = cv.cvtColor(output, cv.COLOR_BGR2GRAY)
 
         # blurred = cv.GaussianBlur(gray, (5, 5), 0)
 
         # Convert image again to black and white only 
         thresh = cv.threshold(gray, 60, 255, cv.THRESH_BINARY)[1]
 
-        cv.imwrite("/home/pi/esc204/thresh.jpg", thresh)
+        '''new = cv.resize(thresh, (int(2592/3),int(1944/3)))
+        cv.imshow("Threshold", new)
+        cv.waitKey(0)'''
 
         # Detect shapes in image
         cnts = cv.findContours(thresh.copy(), cv.RETR_EXTERNAL,
@@ -120,13 +121,15 @@ class SetCam:
             cY = int((M["m01"] / (M["m00"] + 1e-7)))
             shape = sd.detect(c)
             # Only add shape to list if it is a large rectangle
-            if (shape == "rectangle") and (len(c) > 20):
+            if (shape == "rectangle") and (len(c) > 40):
                 array.append(c)
                 c = c.astype("int")
-                cv.drawContours(jpg, [c], -1, (0, 255, 0), 2)
-                cv.putText(jpg, shape, (cX, cY), cv.FONT_HERSHEY_SIMPLEX, 50, (255, 255, 255), 2)
+                cv.drawContours(image, [c], -1, (0, 255, 0), 2)
+                cv.putText(image, shape, (cX, cY), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
-        cv.imwrite("/home/pi/esc204/drawing.jpg", jpg)
+        '''new = cv.resize(image, (int(2592/3),int(1944/3)))
+        cv.imshow("Image", new)
+        cv.waitKey(0)'''
 
         # Empty list to collect post-processed data
         data = []
@@ -148,3 +151,11 @@ class SetCam:
 
         # -1 -> move left, 1 -> move right, 0 -> don't move; magnitude of move in mm
         return((move[0], xDist))
+
+        # Print movement for humans to see
+        # print(move(positions[0],positions[1]))
+
+        # Display image of detected rectangles
+        '''new = cv.resize(image, (int(2592/3),int(1944/3)))
+        cv.imshow("Let's find some rectangles", new)
+        cv.waitKey(0)'''
