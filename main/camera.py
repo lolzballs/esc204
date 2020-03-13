@@ -102,7 +102,6 @@ class SetCam:
         # Convert image again to black and white only 
         thresh = cv.threshold(gray, 60, 255, cv.THRESH_BINARY)[1]
 
-        cv.imwrite("/home/pi/esc204/test2.jpg",thresh)
         '''new = cv.resize(thresh, (int(2592/3),int(1944/3)))
         cv.imshow("Threshold", new)
         cv.waitKey(0)'''
@@ -127,7 +126,9 @@ class SetCam:
                 array.append(c)
                 c = c.astype("int")
                 cv.drawContours(image, [c], -1, (0, 255, 0), 2)
-                cv.putText(image, shape, (cX, cY), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+                cv.putText(image, shape, (cX, cY), cv.FONT_HERSHEY_SIMPLEX, 50, (255, 255, 255), 2)
+
+        cv.imwrite('/home/pi/esc204/jon.jpg',image)
 
         '''new = cv.resize(image, (int(2592/3),int(1944/3)))
         cv.imshow("Image", new)
@@ -151,6 +152,5 @@ class SetCam:
 
         xDist = self.convert_dist(move[1],tof)
 
-        cv.imwrite("/home/pi/esc204/test.jpg",image)
         # -1 -> move left, 1 -> move right, 0 -> don't move; magnitude of move in mm
         return((move[0], xDist))
