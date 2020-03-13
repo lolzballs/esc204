@@ -76,7 +76,7 @@ class SetCam:
     def determine_move(self, tof):
         # Capture image with RBP camera
         sleep(5)
-        self.camera.capture(self.rawCapture, format='rgb')
+        self.camera.capture(self.rawCapture, format='bgr')
         image = self.rawCapture.array
         cv.imwrite('/home/pi/esc204/bruh.jpg',image)
         self.camera.close()
