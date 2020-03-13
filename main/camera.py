@@ -3,7 +3,7 @@ import numpy as np
 import cv2 as cv
 import imutils
 from statistics import mean 
-from picamera.array import CamArray 
+from picamera.array import PiRGBArray 
 from picamera import PiCamera
 from time import sleep
 
@@ -44,7 +44,7 @@ class SetCam:
         self.camera = PiCamera()
         self.camera.rotation = 180
         self.camera.resolution = (2592, 1944)
-        self.rawCapture = CamArray(self.camera)
+        self.rawCapture = PiRGBArray(self.camera)
 
     # Determine what direction to move in
     def x_pos(self, outPos):
@@ -76,7 +76,7 @@ class SetCam:
     def determine_move(self, tof):
         # Capture image with RBP camera
         sleep(5)
-        self.camera.capture(self.rawCapture, format="bgr")
+        self.camera.capture(self.rawCapture)
         image = self.rawCapture.array
         cv.imwrite('/home/pi/Desktop/bruh.jpg')
         self.camera.close()
