@@ -1,27 +1,35 @@
 import camera
 import kinematics
+import math
+import time
 
-class milestone2:
 
-    def __init__(self):
-        self.cam = camera.SetCam()
-        self.mot = kinematics.Motion()
-        self.dist = input('enter value in mm:')
-    
-    def main(self):
+def main():
+    cam = camera.SetCam()
+    mot = kinematics.Motion()
+    dist = input('enter value in mm:')
 
-        for _i in range(0,500):
-            self.mot.step_right(1)
+    mot.step_left(100)
+    mot.step_forward(100)
+    mot.rotate_cw(90)
 
-        move = self.cam.determine_move(self.dist)
+    time.sleep(5)
 
-        if move[0] == -1:
-            for _i in range(0,self.dist):
-                self.mot.step_left(1)
+    for _i in range(0,500):
+        mot.step_left(1)
+
+
+    move = cam.determine_move(dist)
+
+    if move[0] == -1:
+         for _i in range(0,dist):
+            mot.step_right(1)
         
-        if move[0] == 1:
-            for _i in range(0,self.dist):
-                self.mot.step_right(1)
+    if move[0] == 1:
+        for _i in range(0,dist):
+            mot.step_left(1)
 
-        if move[0] == 0:
-            return("DONE")
+    if move[0] == 0:
+        return("DONE")
+
+main()

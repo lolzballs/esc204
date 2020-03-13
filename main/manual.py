@@ -2,6 +2,7 @@ import curses
 import signal
 import kinematics
 import math
+import time
 
 def to_degrees(rad):
     return rad * 180 / math.pi
@@ -21,9 +22,9 @@ def main(stdscr):
         stdscr.refresh()
 
         key = stdscr.getch()
-        if key == ord('a'):
+        if key == ord('d'):
             mot.step_left()
-        elif key == ord('d'):
+        elif key == ord('a'):
             mot.step_right()
         elif key == ord('s'):
             mot.step_back()

@@ -28,8 +28,6 @@ static void process_timer(void *data, int tfd) {
     bool done = true;
 
     read(tfd, &expirations, sizeof(expirations));
-    if (expirations != 1)
-        fprintf(stderr, "cannot keep up with timer intervals!\n");
 
     size_t num_motors = sizeof(stepperd->motors) / sizeof(struct stepperd_motor);
     for (size_t i = 0; i < num_motors; i++) {

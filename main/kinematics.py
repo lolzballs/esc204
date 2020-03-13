@@ -1,5 +1,6 @@
 import math
 import subprocess
+import time
 
 LINK1_LEN = 500
 LINK2_LEN = 500
@@ -47,8 +48,7 @@ class Motion:
         # set to initial state
         self.a1, self.a2, self.a3 = _inverse(1100, 0, 0)
         self.x, self.y, self.phi = _forward(self.a1, self.a2, self.a3)
-
-        assert(self.x == 1100 and self.y == 0 and self.phi == 0) # sanity check
+        self.servo.set_joint(self.a3)
 
     # linear step right
     # relative to the end effector frame
@@ -56,7 +56,7 @@ class Motion:
         # TODO: relativity
         self.x += steps
         try:
-            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, False)
         except:
             self.x -= steps
             return
@@ -68,7 +68,7 @@ class Motion:
         # TODO: relativity
         self.x -= steps
         try:
-            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, False)
         except:
             print("out of range")
             self.x += steps
@@ -81,12 +81,12 @@ class Motion:
         # TODO: relativity
         self.y += steps
         try:
-            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, False)
         except:
-            print("out of range")
             self.y -= steps
-            return
+            return False
         self.update_system()
+        return True
 
     # linear step back 
     # relative to the end effector frame
@@ -94,7 +94,7 @@ class Motion:
         # TODO: relativity
         self.y -= steps
         try:
-            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, False)
         except:
             print("out of range")
             self.y += steps
@@ -106,7 +106,7 @@ class Motion:
         # TODO: Modular arithmetic
         self.phi += angle * math.pi / 180
         try:
-            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, False)
         except:
             print("out of range")
             self.phi -= angle * math.pi / 180
@@ -118,7 +118,7 @@ class Motion:
         # TODO: Modular arithmetic
         self.phi -= angle * math.pi / 180
         try:
-            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, True)
+            self.a1, self.a2, self.a3 = _inverse(self.x, self.y, self.phi, False)
         except:
             print("out of range")
             self.phi += angle * math.pi / 180
@@ -126,7 +126,7 @@ class Motion:
         self.update_system()
 
     def update_system(self):
-        self.stepper.set(self.a1 * 5370 / (2 * math.pi), self.a2 * 5370 / (2 * math.pi))
+        self.stepper.set(-self.a1 * 5370 / (2 * math.pi), -self.a2 * 5370 / (2 * math.pi))
         self.servo.set_joint(self.a3)
 
 class _stepperd:
@@ -164,7 +164,6 @@ class _servo:
 
     def set_joint(self, angle):
         angle = angle * 180 / math.pi
-        angle = -angle
         duty = (self.joint[2] - self.joint[1]) * ((angle + 90) / 180.0) + self.joint[1]
         self.blaster.write("{}={}\n".format(self.joint[0], duty))
         self.blaster.flush()

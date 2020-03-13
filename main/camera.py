@@ -79,7 +79,7 @@ class SetCam:
         self.camera.capture(self.rawCapture, format='bgr')
         image = self.rawCapture.array
         image = image[:, :, ::-1]
-        cv.imwrite('/home/pi/esc204/bruh.jpg',image)
+        jpg = cv.imwrite('/home/pi/esc204/input.jpg', image)
         self.camera.close()
 
         # Define bounds on red colour segmentation
@@ -92,7 +92,7 @@ class SetCam:
         mask = cv.inRange(image, lower, upper)
         output = cv.bitwise_and(image, image, mask = mask)
 
-        # cv.imwrite("/home/jon_pi/Desktop/hello.jpg", output)
+        cv.imwrite("/home/pi/esc204/output.jpg", output)
 
         # Convert colour segmented image to grayscale
         gray = cv.cvtColor(output, cv.COLOR_RGB2GRAY)
@@ -101,6 +101,8 @@ class SetCam:
 
         # Convert image again to black and white only 
         thresh = cv.threshold(gray, 60, 255, cv.THRESH_BINARY)[1]
+
+        cv.imwrite("/home/pi/esc204/thresh.jpg", thresh)
 
         # Detect shapes in image
         cnts = cv.findContours(thresh.copy(), cv.RETR_EXTERNAL,
@@ -121,8 +123,10 @@ class SetCam:
             if (shape == "rectangle") and (len(c) > 20):
                 array.append(c)
                 c = c.astype("int")
-                cv.drawContours(image, [c], -1, (0, 255, 0), 2)
-                cv.putText(image, shape, (cX, cY), cv.FONT_HERSHEY_SIMPLEX, 50, (255, 255, 255), 2)
+                cv.drawContours(jpg, [c], -1, (0, 255, 0), 2)
+                cv.putText(jpg, shape, (cX, cY), cv.FONT_HERSHEY_SIMPLEX, 50, (255, 255, 255), 2)
+
+        cv.imwrite("/home/pi/esc204/drawing.jpg", jpg)
 
         # Empty list to collect post-processed data
         data = []
