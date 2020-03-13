@@ -78,6 +78,7 @@ class SetCam:
         sleep(5)
         self.camera.capture(self.rawCapture, format='bgr')
         image = self.rawCapture.array
+        image = image[:, :, ::-1]
         cv.imwrite('/home/pi/esc204/bruh.jpg',image)
         self.camera.close()
 
