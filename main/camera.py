@@ -74,10 +74,10 @@ class SetCam:
     def determine_move(self, tof):
         # Capture image with RBP camera
         sleep(5)
-        self.camera.capture('/home/jon_pi/Desktop/esc204/vision/align_w_port/test.jpg')
+        self.camera.capture('/home/pi/esc204/test.jpg')
 
         # Read image with OpenCV
-        image = cv.imread('test.jpg')
+        image = cv.imread('/home/pi/esc204/test.jpg')
 
         # Define bounds on blue colour segmentation
         red = ([40,20,80], [60,40,120])
@@ -89,10 +89,6 @@ class SetCam:
         mask = cv.inRange(image, lower, upper)
         output = cv.bitwise_and(image, image, mask = mask)
 
-        '''new = cv.resize(output, (int(2592/3),int(1944/3)))
-        cv.imshow("Blue only", new)
-        cv.waitKey(0)'''
-
         # Convert colour segmented image to grayscale
         gray = cv.cvtColor(output, cv.COLOR_BGR2GRAY)
 
@@ -100,10 +96,6 @@ class SetCam:
 
         # Convert image again to black and white only 
         thresh = cv.threshold(gray, 60, 255, cv.THRESH_BINARY)[1]
-
-        '''new = cv.resize(thresh, (int(2592/3),int(1944/3)))
-        cv.imshow("Threshold", new)
-        cv.waitKey(0)'''
 
         # Detect shapes in image
         cnts = cv.findContours(thresh.copy(), cv.RETR_EXTERNAL,
@@ -127,10 +119,6 @@ class SetCam:
                 cv.drawContours(image, [c], -1, (0, 255, 0), 2)
                 cv.putText(image, shape, (cX, cY), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
-        '''new = cv.resize(image, (int(2592/3),int(1944/3)))
-        cv.imshow("Image", new)
-        cv.waitKey(0)'''
-
         # Empty list to collect post-processed data
         data = []
 
@@ -151,11 +139,3 @@ class SetCam:
 
         # -1 -> move left, 1 -> move right, 0 -> don't move; magnitude of move in mm
         return((move[0], xDist))
-
-        # Print movement for humans to see
-        # print(move(positions[0],positions[1]))
-
-        # Display image of detected rectangles
-        '''new = cv.resize(image, (int(2592/3),int(1944/3)))
-        cv.imshow("Let's find some rectangles", new)
-        cv.waitKey(0)'''
